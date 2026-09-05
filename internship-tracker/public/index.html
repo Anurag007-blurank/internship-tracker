@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Deadline Watch</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root{--bg:#f5f7fb;--surface:#fff;--surface2:#f8fafc;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--primary:#635bff;--primary2:#5148e5;--green:#16a34a;--greenbg:#ecfdf3;--orange:#ea580c;--shadow:0 10px 30px rgba(15,23,42,.07);--radius:18px}
+*{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 10% 0%,#eef2ff 0,transparent 30%),var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif;line-height:1.5} button,input,select{font:inherit} button{cursor:pointer}
+header{height:72px;padding:0 34px;background:rgba(255,255,255,.82);backdrop-filter:blur(14px);border-bottom:1px solid rgba(229,231,235,.8);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5}
+header h1{font-family:'Space Grotesk';font-size:19px;letter-spacing:-.04em;margin:0;font-weight:700} header h1 span{color:var(--primary)} #userBar{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:12px} #userBar button{border:0;background:#f3f4f6;color:#374151;padding:8px 13px;border-radius:10px;font-size:12px;font-weight:600}
+main{max-width:1080px;margin:0 auto;padding:46px 24px 90px}.auth-box{width:min(430px,100%);margin:70px auto;padding:34px;background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
+.auth-box:before{content:'DEADLINE WATCH';display:block;color:var(--primary);font-size:11px;font-weight:700;letter-spacing:.14em;margin-bottom:10px}.auth-box h2{font-family:'Space Grotesk';font-size:27px;margin:0 0 22px;letter-spacing:-.04em}.tabs{display:grid;grid-template-columns:1fr 1fr;background:#f3f4f6;border-radius:12px;padding:4px;margin-bottom:24px}.tabs button{border:0;background:transparent;padding:10px;border-radius:9px;color:var(--muted);font-size:13px;font-weight:600}.tabs button.active{background:#fff;color:var(--text);box-shadow:0 2px 8px rgba(15,23,42,.08)}
+.field{margin-bottom:16px}label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:7px}input,select{width:100%;padding:12px 13px;margin:0;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--text);outline:none;transition:.2s}input:focus,select:focus{border-color:#8b85ff;box-shadow:0 0 0 4px rgba(99,91,255,.1)}input::placeholder{color:#a1a1aa}.primary{width:100%;padding:12px 15px;border:0;border-radius:11px;background:var(--primary);color:#fff;font-size:13px;font-weight:700;transition:.2s;box-shadow:0 6px 14px rgba(99,91,255,.22)}.primary:hover{background:var(--primary2);transform:translateY(-1px)}.error{color:#dc2626;font-size:12px;margin-top:10px}
+.dashboard-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:28px}.eyebrow{color:var(--primary);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px}.dashboard-head h2{font-family:'Space Grotesk';font-size:34px;line-height:1.1;margin:0;letter-spacing:-.05em}.dashboard-head p{margin:7px 0 0;color:var(--muted);font-size:14px}.test{border:1px solid var(--line);background:#fff;padding:9px 13px;border-radius:10px;color:#4b5563;font-size:12px;font-weight:600}
+#addForm{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:30px}.form-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.form-head h2{font-family:'Space Grotesk';font-size:17px;margin:0}.form-head span{font-size:12px;color:var(--muted)}.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}.row .field{min-width:0}.form-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:14px}.form-actions{display:flex;justify-content:flex-end;margin-top:4px}.form-actions .primary{width:auto;padding:11px 22px}
+.list-head{display:flex;align-items:center;justify-content:space-between;margin:0 2px 12px}.list-head h3{font-family:'Space Grotesk';font-size:15px;margin:0}.count{font-size:11px;color:var(--muted);background:#eef2f7;padding:5px 9px;border-radius:99px}.target{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:18px 20px;margin-bottom:11px;display:flex;align-items:center;gap:18px;transition:.2s}.target:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:#d6d9e0}.target-main{flex:1;min-width:0}.target-title{font-weight:700;font-size:15px;margin-bottom:7px}.target-meta{font-size:12px;color:var(--muted);display:flex;align-items:center;flex-wrap:wrap;gap:7px}.badge{display:inline-flex;font-size:10px;text-transform:uppercase;padding:4px 8px;border-radius:99px;background:#f3f4f6;color:#4b5563;font-weight:800;letter-spacing:.04em}.badge.open{background:var(--greenbg);color:var(--green);border:0}.target a{display:inline-block;margin-top:9px;color:var(--primary);font-size:12px;font-weight:700;text-decoration:none}.target a:hover{text-decoration:underline}.del-btn{border:1px solid #fee2e2;background:#fff7f7;color:#dc2626;border-radius:9px;padding:8px 11px;font-size:11px;font-weight:700}.del-btn:hover{background:#fee2e2}#empty{background:#fff;border:1px dashed #d1d5db;border-radius:15px;color:var(--muted);text-align:center;padding:48px 20px;font-size:13px}
+@media(max-width:700px){header{padding:0 18px}main{padding:30px 15px}.dashboard-head{align-items:flex-start;flex-direction:column}.dashboard-head h2{font-size:29px}.row,.form-grid{grid-template-columns:1fr}.form-actions .primary{width:100%}.target{align-items:flex-start}.del-btn{flex-shrink:0}#userBar{font-size:12px}.auth-box{margin:35px auto;padding:25px}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Deadline<span>_</span>Watch</h1>
+  <div id="userBar"></div>
+</header>
+
+<main id="app"></main>
+
+<script>
+const API = ''; // same origin
+let token = localStorage.getItem('token');
+let user = JSON.parse(localStorage.getItem('user') || 'null');
+
+function render() {
+  document.getElementById('userBar').innerHTML = user
+    ? `${user.name} <button onclick="logout()">Log out</button>`
+    : '';
+  document.getElementById('app').innerHTML = user ? dashboardHTML() : authHTML();
+  if (user) { loadTargets(); attachDashboardHandlers(); }
+  else { attachAuthHandlers(); }
+}
+
+// ---------- AUTH VIEW ----------
+function authHTML() {
+  return `
+    <div class="auth-box">
+      <h2>Your opportunities, organized.</h2>
+      <div class="tabs">
+        <button id="tabLogin" class="active">Log in</button>
+        <button id="tabSignup">Sign up</button>
+      </div>
+      <div id="nameField" class="field" style="display:none">
+        <label>Name</label>
+        <input id="authName" placeholder="Your name" />
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input id="authEmail" placeholder="you@example.com" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="authPassword" type="password" placeholder="••••••••" />
+      </div>
+      <button class="primary" id="authSubmit">Log in</button>
+      <div class="error" id="authError"></div>
+    </div>
+  `;
+}
+
+function attachAuthHandlers() {
+  let mode = 'login';
+  const tabLogin = document.getElementById('tabLogin');
+  const tabSignup = document.getElementById('tabSignup');
+  const nameField = document.getElementById('nameField');
+  const submitBtn = document.getElementById('authSubmit');
+
+  tabLogin.onclick = () => { mode = 'login'; tabLogin.classList.add('active'); tabSignup.classList.remove('active'); nameField.style.display = 'none'; submitBtn.textContent = 'Log in'; };
+  tabSignup.onclick = () => { mode = 'signup'; tabSignup.classList.add('active'); tabLogin.classList.remove('active'); nameField.style.display = 'block'; submitBtn.textContent = 'Sign up'; };
+
+  submitBtn.onclick = async () => {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const name = document.getElementById('authName').value.trim();
+    const errorEl = document.getElementById('authError');
+    errorEl.textContent = '';
+
+    try {
+      const res = await fetch(`${API}/auth/${mode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mode === 'signup' ? { name, email, password } : { email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { errorEl.textContent = data.error || 'Something went wrong'; return; }
+
+      token = data.token;
+      user = data.user;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      render();
+    } catch (err) {
+      errorEl.textContent = 'Could not reach server';
+    }
+  };
+}
+
+function logout() {
+  token = null; user = null;
+  localStorage.removeItem('token'); localStorage.removeItem('user');
+  render();
+}
+
+// ---------- DASHBOARD VIEW ----------
+function dashboardHTML() {
+  return `
+    <div class="dashboard-head">
+      <div><div class="eyebrow">Your command center</div><h2>Stay ahead of every deadline.</h2><p>Track internships and hackathons before they slip through the cracks.</p></div>
+      <button id="testBtn" class="test">↻ Run reminder check</button>
+    </div>
+    <div id="addForm">
+      <div class="form-head"><h2>＋ Track a new opportunity</h2><span>We'll remind you before the deadline.</span></div>
+      <div class="form-grid">
+        <div class="field"><label>Opportunity title</label><input id="fTitle" placeholder="e.g. Google STEP Internship" /></div>
+        <div class="field"><label>Type</label><select id="fType"><option value="internship">Internship</option><option value="hackathon">Hackathon</option></select></div>
+      </div>
+      <div class="field"><label>Source URL</label><input id="fUrl" placeholder="https://company.com/careers/..." /></div>
+      <div class="row">
+        <div class="field"><label>Registration opens</label><input id="fOpen" type="datetime-local" /></div>
+        <div class="field"><label>Deadline</label><input id="fDeadline" type="datetime-local" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Remind me (hours before deadline)</label><input id="fRemind" type="number" value="24" min="1" /></div>
+        <div class="field"></div>
+      </div>
+      <div class="form-actions"><button class="primary" id="addBtn">Add opportunity →</button></div>
+    </div>
+    <div class="list-head"><h3>Your tracked opportunities</h3><span class="count" id="targetCount">Loading…</span></div>
+    <div id="targetList"></div>
+  `;
+}
+
+function attachDashboardHandlers() {
+  document.getElementById('addBtn').onclick = addTarget;
+  document.getElementById('testBtn').onclick = async () => {
+    await fetch(`${API}/run-check-now`, { method: 'POST' });
+    alert('Check ran — look at the server console log for [EMAIL SENT] / [MOCK EMAIL] output.');
+  };
+}
+
+async function loadTargets() {
+  const res = await fetch(`${API}/targets`, { headers: { Authorization: `Bearer ${token}` } });
+  if (res.status === 401) { logout(); return; }
+  const targets = await res.json();
+  const list = document.getElementById('targetList');
+
+  const countEl = document.getElementById('targetCount');
+  if (countEl) countEl.textContent = `${targets.length} tracked`;
+
+  if (!targets.length) {
+    list.innerHTML = `<div id="empty">Nothing tracked yet. Add your first internship or hackathon above.</div>`;
+    return;
+  }
+
+  list.innerHTML = targets.map(t => `
+    <div class="target">
+      <div class="target-main">
+        <div class="target-title">${escapeHTML(t.title)}</div>
+        <div class="target-meta">
+          <span class="badge ${t.status === 'notified_open' ? 'open' : ''}">${t.type}</span>
+          ${t.registration_open_date ? `Opens: ${fmt(t.registration_open_date)} · ` : ''}
+          ${t.deadline ? `Deadline: ${fmt(t.deadline)}` : 'No deadline set'}
+        </div>
+        ${t.source_url ? `<a href="${t.source_url}" target="_blank">View source →</a>` : ''}
+      </div>
+      <button class="del-btn" onclick="deleteTarget(${t.id})">Delete</button>
+    </div>
+  `).join('');
+}
+
+async function addTarget() {
+  const body = {
+    title: document.getElementById('fTitle').value.trim(),
+    type: document.getElementById('fType').value,
+    source_url: document.getElementById('fUrl').value.trim(),
+    registration_open_date: document.getElementById('fOpen').value || null,
+    deadline: document.getElementById('fDeadline').value || null,
+    remind_before_hours: Number(document.getElementById('fRemind').value) || 24,
+  };
+  if (!body.title) { alert('Title is required'); return; }
+
+  const res = await fetch(`${API}/targets`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+  if (res.ok) {
+    document.getElementById('fTitle').value = '';
+    document.getElementById('fUrl').value = '';
+    document.getElementById('fOpen').value = '';
+    document.getElementById('fDeadline').value = '';
+    loadTargets();
+  } else {
+    const data = await res.json();
+    alert(data.error || 'Failed to add target');
+  }
+}
+
+async function deleteTarget(id) {
+  await fetch(`${API}/targets/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+  loadTargets();
+}
+
+function fmt(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+render();
+</script>
+</body>
+</html>
