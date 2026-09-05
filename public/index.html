@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Deadline Watch</title>
+<style>
+  :root {
+    --ink: #17191c;
+    --paper: #f6f5f2;
+    --line: #d8d5cd;
+    --signal: #2e6f5e;
+    --signal-dim: #cfe3dc;
+    --warn: #b3521e;
+    --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.4;
+  }
+  header {
+    border-bottom: 1px solid var(--line);
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header h1 {
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0;
+    font-weight: 700;
+  }
+  header h1 span { color: var(--signal); }
+  #userBar { font-family: var(--mono); font-size: 12px; color: #6b6b6b; }
+  #userBar button {
+    margin-left: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    background: none;
+    border: 1px solid var(--line);
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+
+  main { max-width: 760px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  .auth-box {
+    border: 1px solid var(--line);
+    padding: 28px;
+    max-width: 380px;
+    margin: 60px auto;
+    background: white;
+  }
+  .auth-box h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .tabs button {
+    flex: 1; padding: 8px; font-family: var(--mono); font-size: 12px;
+    background: var(--paper); border: 1px solid var(--line); cursor: pointer;
+  }
+  .tabs button.active { background: var(--signal); color: white; border-color: var(--signal); }
+
+  input, select {
+    width: 100%; padding: 9px 10px; margin-bottom: 10px;
+    border: 1px solid var(--line); font-family: var(--sans); font-size: 13px;
+    background: white;
+  }
+  label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #6b6b6b; display: block; margin-bottom: 4px; }
+  .field { margin-bottom: 12px; }
+
+  button.primary {
+    width: 100%; padding: 10px; background: var(--ink); color: white;
+    border: none; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+    text-transform: uppercase; cursor: pointer;
+  }
+  button.primary:hover { background: var(--signal); }
+  .error { color: var(--warn); font-size: 12px; margin-top: 8px; font-family: var(--mono); }
+
+  #addForm {
+    border: 1px solid var(--line); padding: 20px; background: white; margin-bottom: 28px;
+  }
+  #addForm h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0; color: #6b6b6b; }
+  .row { display: flex; gap: 10px; }
+  .row .field { flex: 1; }
+
+  .target {
+    border: 1px solid var(--line); background: white; padding: 16px 18px;
+    margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+  }
+  .target-main { flex: 1; }
+  .target-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .target-meta { font-family: var(--mono); font-size: 11px; color: #6b6b6b; }
+  .badge {
+    display: inline-block; font-family: var(--mono); font-size: 10px; text-transform: uppercase;
+    padding: 2px 6px; border: 1px solid var(--line); margin-right: 6px; letter-spacing: 0.04em;
+  }
+  .badge.open { background: var(--signal-dim); border-color: var(--signal); color: var(--signal); }
+  .target a { color: var(--signal); font-size: 11px; font-family: var(--mono); }
+  .del-btn {
+    background: none; border: 1px solid var(--line); font-family: var(--mono);
+    font-size: 11px; padding: 4px 8px; cursor: pointer; color: var(--warn);
+  }
+  #empty { color: #6b6b6b; font-family: var(--mono); font-size: 13px; text-align: center; padding: 40px 0; }
+  #testBtn {
+    font-family: var(--mono); font-size: 11px; background: none; border: 1px dashed var(--line);
+    padding: 6px 10px; cursor: pointer; color: #6b6b6b; margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Deadline<span>_</span>Watch</h1>
+  <div id="userBar"></div>
+</header>
+
+<main id="app"></main>
+
+<script>
+const API = ''; // same origin
+let token = localStorage.getItem('token');
+let user = JSON.parse(localStorage.getItem('user') || 'null');
+
+function render() {
+  document.getElementById('userBar').innerHTML = user
+    ? `${user.name} <button onclick="logout()">Log out</button>`
+    : '';
+  document.getElementById('app').innerHTML = user ? dashboardHTML() : authHTML();
+  if (user) { loadTargets(); attachDashboardHandlers(); }
+  else { attachAuthHandlers(); }
+}
+
+// ---------- AUTH VIEW ----------
+function authHTML() {
+  return `
+    <div class="auth-box">
+      <div class="tabs">
+        <button id="tabLogin" class="active">Log in</button>
+        <button id="tabSignup">Sign up</button>
+      </div>
+      <div id="nameField" class="field" style="display:none">
+        <label>Name</label>
+        <input id="authName" placeholder="Your name" />
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input id="authEmail" placeholder="you@example.com" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input id="authPassword" type="password" placeholder="••••••••" />
+      </div>
+      <button class="primary" id="authSubmit">Log in</button>
+      <div class="error" id="authError"></div>
+    </div>
+  `;
+}
+
+function attachAuthHandlers() {
+  let mode = 'login';
+  const tabLogin = document.getElementById('tabLogin');
+  const tabSignup = document.getElementById('tabSignup');
+  const nameField = document.getElementById('nameField');
+  const submitBtn = document.getElementById('authSubmit');
+
+  tabLogin.onclick = () => { mode = 'login'; tabLogin.classList.add('active'); tabSignup.classList.remove('active'); nameField.style.display = 'none'; submitBtn.textContent = 'Log in'; };
+  tabSignup.onclick = () => { mode = 'signup'; tabSignup.classList.add('active'); tabLogin.classList.remove('active'); nameField.style.display = 'block'; submitBtn.textContent = 'Sign up'; };
+
+  submitBtn.onclick = async () => {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const name = document.getElementById('authName').value.trim();
+    const errorEl = document.getElementById('authError');
+    errorEl.textContent = '';
+
+    try {
+      const res = await fetch(`${API}/auth/${mode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mode === 'signup' ? { name, email, password } : { email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { errorEl.textContent = data.error || 'Something went wrong'; return; }
+
+      token = data.token;
+      user = data.user;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      render();
+    } catch (err) {
+      errorEl.textContent = 'Could not reach server';
+    }
+  };
+}
+
+function logout() {
+  token = null; user = null;
+  localStorage.removeItem('token'); localStorage.removeItem('user');
+  render();
+}
+
+// ---------- DASHBOARD VIEW ----------
+function dashboardHTML() {
+  return `
+    <button id="testBtn">Run reminder check now (for testing)</button>
+    <div id="addForm">
+      <h2>Track a new target</h2>
+      <div class="field">
+        <label>Title</label>
+        <input id="fTitle" placeholder="e.g. Google STEP Internship" />
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Type</label>
+          <select id="fType">
+            <option value="internship">Internship</option>
+            <option value="hackathon">Hackathon</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Source URL</label>
+          <input id="fUrl" placeholder="https://..." />
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Registration opens</label>
+          <input id="fOpen" type="datetime-local" />
+        </div>
+        <div class="field">
+          <label>Deadline</label>
+          <input id="fDeadline" type="datetime-local" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Remind me (hours before deadline)</label>
+        <input id="fRemind" type="number" value="24" />
+      </div>
+      <button class="primary" id="addBtn">Add target</button>
+    </div>
+    <div id="targetList"></div>
+  `;
+}
+
+function attachDashboardHandlers() {
+  document.getElementById('addBtn').onclick = addTarget;
+  document.getElementById('testBtn').onclick = async () => {
+    await fetch(`${API}/run-check-now`, { method: 'POST' });
+    alert('Check ran — look at the server console log for [EMAIL SENT] / [MOCK EMAIL] output.');
+  };
+}
+
+async function loadTargets() {
+  const res = await fetch(`${API}/targets`, { headers: { Authorization: `Bearer ${token}` } });
+  if (res.status === 401) { logout(); return; }
+  const targets = await res.json();
+  const list = document.getElementById('targetList');
+
+  if (!targets.length) {
+    list.innerHTML = `<div id="empty">Nothing tracked yet. Add your first internship or hackathon above.</div>`;
+    return;
+  }
+
+  list.innerHTML = targets.map(t => `
+    <div class="target">
+      <div class="target-main">
+        <div class="target-title">${escapeHTML(t.title)}</div>
+        <div class="target-meta">
+          <span class="badge ${t.status === 'notified_open' ? 'open' : ''}">${t.type}</span>
+          ${t.registration_open_date ? `Opens: ${fmt(t.registration_open_date)} · ` : ''}
+          ${t.deadline ? `Deadline: ${fmt(t.deadline)}` : 'No deadline set'}
+        </div>
+        ${t.source_url ? `<a href="${t.source_url}" target="_blank">View source →</a>` : ''}
+      </div>
+      <button class="del-btn" onclick="deleteTarget(${t.id})">Delete</button>
+    </div>
+  `).join('');
+}
+
+async function addTarget() {
+  const body = {
+    title: document.getElementById('fTitle').value.trim(),
+    type: document.getElementById('fType').value,
+    source_url: document.getElementById('fUrl').value.trim(),
+    registration_open_date: document.getElementById('fOpen').value || null,
+    deadline: document.getElementById('fDeadline').value || null,
+    remind_before_hours: Number(document.getElementById('fRemind').value) || 24,
+  };
+  if (!body.title) { alert('Title is required'); return; }
+
+  const res = await fetch(`${API}/targets`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+  if (res.ok) {
+    document.getElementById('fTitle').value = '';
+    document.getElementById('fUrl').value = '';
+    document.getElementById('fOpen').value = '';
+    document.getElementById('fDeadline').value = '';
+    loadTargets();
+  } else {
+    const data = await res.json();
+    alert(data.error || 'Failed to add target');
+  }
+}
+
+async function deleteTarget(id) {
+  await fetch(`${API}/targets/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+  loadTargets();
+}
+
+function fmt(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+render();
+</script>
+</body>
+</html>
